@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ceviche sample page</title>
+    <link rel="stylesheet" href="./frame.css" />
+  </head>
+  <body>
+    <header class="toolbar" data-ceviche-id="toolbar">
+      <a class="logo" data-ceviche-id="logo" href="#">Hungry</a>
+      <nav class="tabs" data-ceviche-id="tabs">
+        <a class="tab active" data-ceviche-id="tab" href="#"><span>Okay,</span></a>
+        <a class="tab" data-ceviche-id="tab" href="#"><span>It's</span></a>
+        <a class="tab" data-ceviche-id="tab" href="#"><span>Dinner</span></a>
+        <a class="tab" data-ceviche-id="tab" href="#"><span>Time</span></a>
+      </nav>
+      <button class="button primary" data-ceviche-id="subscribe">Eat</button>
+    </header>
+
+    <main class="timeline" data-ceviche-id="timeline">
+      <article class="card featured" data-ceviche-id="card">
+        <span class="tag" data-ceviche-id="tag">Tasty</span>
+        <h2 class="card-title" data-ceviche-id="title">Lime prices surge as ceviche season opens</h2>
+        <p class="card-summary">Markets report record demand for citrus, red onion and fresh sea bass along the coast.</p>
+        <footer class="card-meta">
+          <span class="byline">By the news desk</span>
+          <button class="button ghost" data-ceviche-id="read">Read</button>
+        </footer>
+      </article>
+
+      <article class="card" data-ceviche-id="card">
+        <span class="tag" data-ceviche-id="tag">Kitchen talk</span>
+        <h2 class="card-title" data-ceviche-id="title">Why acid “cooks” fish without heat</h2>
+        <p class="card-summary">Citric acid denatures proteins much like heat does, changing texture and colour in minutes.</p>
+        <footer class="card-meta">
+          <span class="byline"></span>
+          <button class="button ghost" data-ceviche-id="read">Read</button>
+        </footer>
+      </article>
+
+      <article class="card" data-ceviche-id="card">
+        <span class="tag" data-ceviche-id="tag">And that's on food...</span>
+        <h2 class="card-title" data-ceviche-id="title">Leche de tigre is the best part, and that is final</h2>
+        <p class="card-summary">A spirited defence of drinking the marinade, with a short history of the practice.</p>
+        <footer class="card-meta">
+          <span class="byline"></span>
+          <button class="button ghost" data-ceviche-id="read">Read</button>
+        </footer>
+      </article>
+    </main>
+
+    <script type="module" src="./frame.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ceviche</title>
+    <link rel="stylesheet" href="./host.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <h1>Ceviche</h1>
+      <button id="inspect" class="toggle" aria-pressed="false" title="Toggle click-to-inspect (I)">⌖ Inspect</button>
+      <label title="Cross-origin loads the frame from the other loopback host name, to exercise origin checks">Frame
+        <select id="origin">
+          <option value="same">Same origin</option>
+          <option value="cross">Cross origin</option>
+        </select>
+      </label>
+      <button id="reload">Reload frame</button>
+      <span id="status" class="status">Waiting for frame…</span>
+    </header>
+
+    <main class="layout">
+      <section class="stage">
+        <iframe id="frame" title="Inspected page"></iframe>
+      </section>
+
+      <aside class="panel">
+        <section class="block grow">
+          <div class="block-head">
+            <h2>No Target</h2>
+          </div>
+          <div id="target" class="hidden">
+            <label>Element</label>
+            <span id="element"></span>
+            <label>Variables</label>
+            <dl id="variables"></dl>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <script type="module" src="./host.ts"></script>
+  </body>
+</html>
