@@ -7,14 +7,22 @@ const ui = {
   reload: document.getElementById('reload') as HTMLButtonElement,
   status: document.getElementById('status') as HTMLSpanElement,
   inspect: document.getElementById('inspect') as HTMLButtonElement,
-  targetHeader: document.querySelector('.block-head h2') as HTMLHeadingElement,
+  targetTitle: document.getElementById('target-title') as HTMLHeadingElement,
+  empty: document.getElementById('empty') as HTMLParagraphElement,
   target: document.getElementById('target') as HTMLDivElement,
   element: document.getElementById('element') as HTMLSpanElement,
-  variables: document.getElementById('variables') as HTMLDListElement
+  path: document.getElementById('path') as HTMLElement,
+  paths: document.getElementById('paths') as HTMLSelectElement,
+  variables: document.getElementById('variables') as HTMLDListElement,
+  variableCount: document.getElementById('variable-count') as HTMLSpanElement,
+  noVariables: document.getElementById('no-variables') as HTMLParagraphElement
 }
 
 ui.reload.addEventListener('click', reloadFrame)
 ui.origin.addEventListener('change', reloadFrame)
+ui.paths.addEventListener('change', () => {
+  channelHost?.selectTarget(ui.paths.value)
+})
 ui.inspect.addEventListener('click', () => {
   channelHost?.toggleInspector()
 })
@@ -34,6 +42,41 @@ function setStatus(ready: boolean) {
   ui.inspect.disabled = !ready
 }
 
+function variableRow(variable: string, inspection: { value: string; count: number }): HTMLDivElement {
+  const row = document.createElement('div')
+  row.className = 'var'
+
+  const dt = document.createElement('dt')
+  dt.className = 'mono'
+  dt.textContent = variable
+  dt.title = `Used ${inspection.count} time${inspection.count === 1 ? '' : 's'}`
+  if (inspection.count > 1) {
+    const uses = document.createElement('span')
+    uses.className = 'uses'
+    uses.textContent = `×${inspection.count}`
+    dt.append(uses)
+  }
+
+  const dd = document.createElement('dd')
+  dd.className = 'mono'
+  if (inspection.value) {
+    if (CSS.supports('color', inspection.value)) {
+      const swatch = document.createElement('span')
+      swatch.className = 'swatch'
+      swatch.style.background = inspection.value
+      dd.append(swatch)
+    }
+    dd.append(inspection.value)
+  } else {
+    const none = document.createElement('em')
+    none.textContent = 'no value'
+    dd.append(none)
+  }
+
+  row.append(dt, dd)
+  return row
+}
+
 function reloadFrame() {
   channelHost?.channel.dispose()
   setStatus(false)
@@ -45,22 +88,17 @@ function reloadFrame() {
       ui.inspect.ariaPressed = enabled ? 'true' : 'false'
     },
     target: (target) => {
-      ui.targetHeader.textContent = target ? 'Target' : 'No Target'
-      ui.target.classList.toggle('hidden', !target)
-      ui.element.textContent = target?.element ?? ''
-      ui.variables.innerHTML = ''
-      for (const [variable, inspection] of target.variables) {
-        const dt = document.createElement('dt')
-        dt.textContent = variable
-        const dd = document.createElement('dd')
-        if (inspection.value) {
-          dd.textContent = inspection.value
-        } else {
-          dd.innerHTML = `<em>no value</em>`
-        }
-        ui.variables.appendChild(dt)
-        ui.variables.appendChild(dd)
-      }
+      ui.targetTitle.textContent = target ? 'Target' : 'No target'
+      ui.empty.hidden = !!target
+      ui.target.hidden = !target
+      ui.element.textContent = target ? `<${target.element.toLowerCase()}>` : ''
+      ui.path.textContent = target?.path ?? ''
+      ui.paths.replaceChildren(...(target?.targetTree ?? []).map(path => new Option(path, path, false, path === target?.path)))
+
+      const variables = [...(target?.variables ?? [])]
+      ui.variableCount.textContent = variables.length ? String(variables.length) : ''
+      ui.noVariables.hidden = variables.length > 0
+      ui.variables.replaceChildren(...variables.map(([variable, inspection]) => variableRow(variable, inspection)))
     }
   })
   ui.iframe.src = withParentOrigin(origin + '/frame.html').toString()

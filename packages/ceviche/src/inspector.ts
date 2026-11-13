@@ -3,6 +3,9 @@ import type { Channel, FrameMessages, HostMessages } from './protocol'
 import { serializeInspection } from './serialization'
 import { closestTarget } from './targets'
 
+/** Marks the currently selected target */
+export const SELECTED_TARGET_ATTRIBUTE = 'data-ceviche-selected'
+
 type InspectorOptions = {
   attribute?: string
   label?: (el: Element) => string
@@ -18,7 +21,7 @@ export function defaultInspector(channel: Channel<FrameMessages, HostMessages>, 
       channel.post('frame:status', { inspecting: true })
     },
     onSelect: (el: Element) => {
-      channel.post('target:selected', serializeInspection(inspect(el)))
+      channel.post('target:selected', serializeInspection(inspect(el, { attr: options.attribute })))
     },
     onExit: () => {
       channel.post('frame:status', { inspecting: false })
@@ -35,30 +38,35 @@ export function create(options: InspectorOptions) {
 
   const mouseover = (event: MouseEvent) => {
     const target = event.target as Element
-    const closest = closestTarget(target, { attribute: options.attribute })
+    const closest = closestTarget(target, options.attribute)
     if (!closest) return
     place(hoverBox, closest, options.label?.(closest) ?? closest.tagName)
     options.onHover?.(closest)
   }
 
   const click = (event: MouseEvent) => {
-    const target = event.target as Element
-    const closest = closestTarget(target, { attribute: options.attribute })
-    if (!closest) return
-    place(selectedBox, closest, options.label?.(closest) ?? closest.tagName)
-    event.preventDefault()
     event.stopPropagation()
+    event.preventDefault()
+    selectTarget(event.target as Element)
+  }
+
+  const selectTarget = (target: Element) => {
+    document.querySelectorAll(`[${SELECTED_TARGET_ATTRIBUTE}]`).forEach(el => el.removeAttribute(SELECTED_TARGET_ATTRIBUTE))
+    const closest = closestTarget(target, options.attribute)
+    if (!closest) return
+    closest.setAttribute(SELECTED_TARGET_ATTRIBUTE, '1')
+    place(selectedBox, closest, options.label?.(closest) ?? closest.tagName)
     options.onSelect?.(closest)
   }
 
   const start = () => {
     document.addEventListener('mouseover', mouseover)
-    document.addEventListener('click', click)
+    document.addEventListener('click', click, { capture: true })
     options.onEnter?.()
   }
   const end = () => {
     document.removeEventListener('mouseover', mouseover)
-    document.removeEventListener('click', click)
+    document.removeEventListener('click', click, { capture: true })
     hoverBox.hidden = true
     selectedBox.hidden = true
     options.onExit?.()
@@ -66,6 +74,7 @@ export function create(options: InspectorOptions) {
   return {
     start,
     end,
+    select: selectTarget,
   }
 }
 

@@ -13,16 +13,25 @@ export interface Envelope<Type extends string = string, Payload = unknown> {
 }
 
 /** Turn click-to-inspect on or off. */
-export const MSG_INSPECTOR_SET = 'inspector:set'
+export const MSG_SET_INSPECTOR = 'inspector:set'
+/** Set CSS variables on the frame. */
+export const MSG_SET_VARIABLES = 'variables:set'
+/** Select the target at the given path */
+export const MSG_SELECT_TARGET = 'target:select'
 /** The frame is ready to receive messages. */
 export const MSG_FRAME_READY = 'frame:ready'
 /** The frame reports its current status. */
 export const MSG_FRAME_STATUS = 'frame:status'
 /** The target has been selected. */
 export const MSG_TARGET_SELECTED = 'target:selected'
+/** The CSS variables have been set. */
+export const MSG_VARIABLES_UPDATED = 'variables:updated'
+
 /** Messages a host sends to the frame. */
 export interface HostMessages {
-  [MSG_INSPECTOR_SET]: { enabled: boolean }
+  [MSG_SET_INSPECTOR]: { enabled: boolean }
+  [MSG_SET_VARIABLES]: { values: Record<string, string> }
+  [MSG_SELECT_TARGET]: { path: string }
 }
 
 /** Messages the frame sends to its host. */
@@ -30,6 +39,7 @@ export interface FrameMessages {
   [MSG_FRAME_READY]: { url: string }
   [MSG_FRAME_STATUS]: { inspecting: boolean }
   [MSG_TARGET_SELECTED]: SerializedSelection
+  [MSG_VARIABLES_UPDATED]: { values: Record<string, string> }
 }
 
 export interface Channel<Out extends object, In extends object> {
