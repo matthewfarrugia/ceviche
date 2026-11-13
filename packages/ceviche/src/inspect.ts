@@ -1,8 +1,15 @@
 
 import { walkStyleRules, type StyleRuleEntry, parseDeclarations, variableReferences, type Declaration } from './css'
+import { buildTargetTree, type TargetOptions } from './targets'
 
 export type InspectedResult = {
+  /** The targeted element */
   element: Element
+  /** The target's path */
+  path: string | null
+  /** Every target path currently in the document */
+  targetTree: string[]
+  /** Every CSS variable used by the element */
   variables: Map<string, InspectedVariable>
 }
 
@@ -24,8 +31,9 @@ export function matchedRules(el: Element): StyleRuleEntry[] {
   return matches
 }
 
-export function inspect(el: Element): InspectedResult {
-  const matches = matchedRules(el)
+export function inspect(element: Element, options: TargetOptions = {}): InspectedResult {
+  const owner = element.ownerDocument
+  const matches = matchedRules(element)
   const variablesUsages: Record<string, VariableUsage[]> = {}
   for (const match of matches) {
     for (const declaration of parseDeclarations(match.rule.cssText)) {
@@ -41,14 +49,18 @@ export function inspect(el: Element): InspectedResult {
   }
 
   const variables: Map<string, InspectedVariable> = new Map()
-  const computedStyle = el.ownerDocument.defaultView?.getComputedStyle(el)
+  const computedStyle = owner.defaultView?.getComputedStyle(element)
   for (const [variable, usages] of Object.entries(variablesUsages)) {
     const value = computedStyle?.getPropertyValue(variable)
     variables.set(variable, { value: value ?? '', count: usages.length })
   }
 
+  const targetTree = buildTargetTree(owner.body, options)
+
   return {
-    element: el,
+    element,
+    path: targetTree.pathOf(element),
+    targetTree: targetTree.paths(),
     variables: variables
   }
 }

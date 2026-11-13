@@ -25,18 +25,32 @@
         <iframe id="frame" title="Inspected page"></iframe>
       </section>
 
-      <aside class="panel">
-        <section class="block grow">
-          <div class="block-head">
-            <h2>No Target</h2>
-          </div>
-          <div id="target" class="hidden">
-            <label>Element</label>
-            <span id="element"></span>
-            <label>Variables</label>
-            <dl id="variables"></dl>
-          </div>
-        </section>
+      <aside class="panel" aria-labelledby="target-title">
+        <header class="panel-head">
+          <h2 id="target-title">No target</h2>
+          <span id="element" class="tag"></span>
+        </header>
+
+        <p id="empty" class="empty">Turn on <strong>Inspect</strong> and click an element in the frame to see its variables.</p>
+
+        <div id="target" class="panel-body" hidden>
+          <section class="block">
+            <label class="field">
+              <span class="field-label">Target</span>
+              <select id="paths" title="Select a target by path (target:select)"></select>
+            </label>
+            <div class="field">
+              <span class="field-label">Path</span>
+              <code id="path" class="mono"></code>
+            </div>
+          </section>
+
+          <section class="block">
+            <h3 class="block-title">Variables <span id="variable-count" class="count"></span></h3>
+            <dl id="variables" class="vars"></dl>
+            <p id="no-variables" class="empty small" hidden>No CSS variables used by this target.</p>
+          </section>
+        </div>
       </aside>
     </main>
 
