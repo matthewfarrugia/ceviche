@@ -1,6 +1,6 @@
 # Ceviche
 
-CSS / Element Variable Inspector _and_ Editor (CEVIchE) tools
+**C**SS / **E**lement **V**ariable **I**nspector _and_ **Ch**annel _for_ **E**diting (CEVIChE)
 
 WIP
 
