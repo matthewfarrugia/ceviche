@@ -144,7 +144,13 @@ export function parentOriginFromLocation(
   param = PARENT_ORIGIN_PARAM,
   location: Location = window.location,
 ): string | null {
-  const value = new URLSearchParams(location.search).get(param)
+  const value = new URLSearchParams(location.search).get(param)?.replace(/\/$/, '')
   if (!value) return null
-  return allow(value) ? value : null
+  try {
+    const urlValue = new URL(value)
+    if (urlValue.origin === 'null' || urlValue.origin !== value) return null
+    return allow(value) ? value : null
+  } catch {
+    return null
+  }
 }
