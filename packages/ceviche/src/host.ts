@@ -43,7 +43,6 @@ export function host(channel: Channel<HostMessages, FrameMessages>, handlers: Ho
     })
     channel.on(MSG_VARIABLES_UPDATED, ({ values }) => {
         state.values = values
-        console.log('Variables updated:', values)
         channel.post(MSG_SELECT_TARGET, { path: state.selection?.path ?? '' })
     })
     return {

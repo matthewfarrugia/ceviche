@@ -3,9 +3,10 @@ import {
   MSG_SET_VARIABLES,
   MSG_SELECT_TARGET,
   MSG_FRAME_READY,
+  MSG_VARIABLES_UPDATED,
   type Channel,
   type FrameMessages,
-  type HostMessages
+  type HostMessages,
 } from './protocol'
 import type { Inspector } from './inspector'
 import { createVariableApplier } from './apply'
@@ -25,6 +26,9 @@ export function frame(channel: Channel<FrameMessages, HostMessages>, options: Fr
   })
   channel.on(MSG_SET_VARIABLES, ({ values }) => {
     applier.apply(values)
+    setTimeout(() => {
+      channel.post(MSG_VARIABLES_UPDATED, { values })
+    }, 0)
   })
   channel.on(MSG_SELECT_TARGET, ({ path }) => {
     if (!isString(path)) throw new Error('Ceviche: path is not a string')
