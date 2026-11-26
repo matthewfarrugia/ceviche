@@ -1,4 +1,4 @@
-import type { Channel } from '../src/protocol'
+import type { Channel, PayloadArgs } from '../src/protocol'
 
 type Handler = (payload: any, event: MessageEvent) => void
 
@@ -20,8 +20,8 @@ export function fakeChannel<Out extends object, In extends object>() {
   } as unknown as Channel<Out, In>
 
   /** Delivers an incoming message to the registered handlers. */
-  const emit = <Type extends keyof In & string>(type: Type, payload: In[Type]) => {
-    handlers.get(type)?.forEach((handler) => handler(payload, new MessageEvent('message')))
+  const emit = <Type extends keyof In & string>(type: Type, ...[payload]: PayloadArgs<In[Type]>) => {
+    handlers.get(type)?.forEach((handler) => handler(payload ?? {}, new MessageEvent('message')))
   }
   const last = (type: string) => posted.filter((p) => p.type === type).at(-1)?.payload
   return { channel, posted, emit, last }

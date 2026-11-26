@@ -42,10 +42,42 @@ describe('frame', () => {
     expect(rootStyle().getPropertyValue('--b')).toBe('2px')
   })
 
+  test('upserts variables keeping existing ones if not replaced', () => {
+    const { emit } = setup()
+    emit('variables:upsert', { values: { '--a': 'red', '--b': '1px' } })
+    expect(rootStyle().getPropertyValue('--a')).toBe('red')
+    expect(rootStyle().getPropertyValue('--b')).toBe('1px')
+    emit('variables:upsert', { values: { '--b': '2px' } })
+    expect(rootStyle().getPropertyValue('--a')).toBe('red')
+    expect(rootStyle().getPropertyValue('--b')).toBe('2px')
+    emit('variables:upsert', { values: { '--c': '99px' } })
+    expect(rootStyle().getPropertyValue('--a')).toBe('red')
+    expect(rootStyle().getPropertyValue('--b')).toBe('2px')
+    expect(rootStyle().getPropertyValue('--c')).toBe('99px')
+  })
+
+  test('clears variables removing all previously set variables', () => {
+    const { emit } = setup()
+    emit('variables:set', { values: { '--a': 'red', '--b': '1px' } })
+    expect(rootStyle().getPropertyValue('--a')).toBe('red')
+    expect(rootStyle().getPropertyValue('--b')).toBe('1px')
+    emit('variables:upsert', { values: { '--c': '99px' } })
+    emit('variables:clear')
+    expect(rootStyle().getPropertyValue('--a')).toBe('')
+    expect(rootStyle().getPropertyValue('--b')).toBe('')
+    expect(rootStyle().getPropertyValue('--c')).toBe('')
+  })
+
   test('reports applied variables back to the host', async () => {
     const { emit, last } = setup()
     emit('variables:set', { values: { '--brand': 'red' } })
     await vi.waitFor(() => expect(last('variables:updated')).toEqual({ values: { '--brand': 'red' } }))
+
+    emit('variables:upsert', { values: { '--brand2': 'blue' } })
+    await vi.waitFor(() => expect(last('variables:updated')).toEqual({ values: { '--brand2': 'blue' } }))
+
+    emit('variables:clear')
+    await vi.waitFor(() => expect(last('variables:updated')).toEqual({ values: {} }))
   })
 
   test('selects the target at a path', () => {

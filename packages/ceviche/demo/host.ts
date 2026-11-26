@@ -1,10 +1,11 @@
-import { createHostChannel, withParentOrigin } from '../src'
+import { createHostChannel, withParentOrigin, type InspectedVariable } from '../src'
 import { host } from '../src/host'
 
 const ui = {
   iframe: document.getElementById('frame') as HTMLIFrameElement,
   origin: document.getElementById('origin') as HTMLSelectElement,
   reload: document.getElementById('reload') as HTMLButtonElement,
+  clear: document.getElementById('clear') as HTMLButtonElement,
   status: document.getElementById('status') as HTMLSpanElement,
   inspect: document.getElementById('inspect') as HTMLButtonElement,
   targetTitle: document.getElementById('target-title') as HTMLHeadingElement,
@@ -26,6 +27,9 @@ ui.paths.addEventListener('change', () => {
 ui.inspect.addEventListener('click', () => {
   channelHost?.toggleInspector()
 })
+ui.clear.addEventListener('click', () => {
+  channelHost?.clearVariables()
+})
 
 function frameOrigin(): string {
   if (ui.origin.value === 'same') return location.origin
@@ -42,18 +46,21 @@ function setStatus(ready: boolean) {
   ui.inspect.disabled = !ready
 }
 
-function variableRow(variable: string, inspection: { value: string; count: number }): HTMLDivElement {
+function variableRow(variable: string, inspection: InspectedVariable): HTMLDivElement {
   const row = document.createElement('div')
   row.className = 'var'
+
+  const usages = inspection.usages.length
+  const propertiesUsed = new Set(inspection.usages.map(usage => usage.property))
 
   const dt = document.createElement('dt')
   dt.className = 'mono'
   dt.textContent = variable
-  dt.title = `Used ${inspection.count} time${inspection.count === 1 ? '' : 's'}`
-  if (inspection.count > 1) {
+  dt.title = `Used ${usages} time${usages === 1 ? '' : 's'}`
+  if (usages > 1) {
     const uses = document.createElement('span')
     uses.className = 'uses'
-    uses.textContent = `×${inspection.count}`
+    uses.textContent = `×${usages}`
     dt.append(uses)
   }
 
@@ -65,16 +72,37 @@ function variableRow(variable: string, inspection: { value: string; count: numbe
       swatch.className = 'swatch'
       swatch.style.background = inspection.value
       dd.append(swatch)
+      row.setAttribute('data-is-color', '1')
     }
     dd.append(inspection.value)
   } else {
     const none = document.createElement('em')
     none.textContent = 'no value'
+    if (propertiesUsed.has('color')
+      || propertiesUsed.has('background')
+      || propertiesUsed.has('background-color')
+      || propertiesUsed.has('border-color')
+      || propertiesUsed.has('border')
+      || propertiesUsed.has('outline-color')
+      || propertiesUsed.has('outline')
+      || propertiesUsed.has('text-decoration-color')
+      || propertiesUsed.has('text-decoration')
+      || propertiesUsed.has('fill-color')
+      || propertiesUsed.has('fill')
+      || propertiesUsed.has('stroke-color')
+      || propertiesUsed.has('stroke')
+    ) {
+      row.setAttribute('data-is-color', '1')
+    }
     dd.append(none)
   }
 
   row.append(dt, dd)
   return row
+}
+
+function randomHexColor() {
+  return `#${Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0')}`
 }
 
 function reloadFrame() {
@@ -98,7 +126,17 @@ function reloadFrame() {
       const variables = [...(target?.variables ?? [])]
       ui.variableCount.textContent = variables.length ? String(variables.length) : ''
       ui.noVariables.hidden = variables.length > 0
-      ui.variables.replaceChildren(...variables.map(([variable, inspection]) => variableRow(variable, inspection)))
+      const children = []
+      for (const [variable, inspection] of variables) {
+        const row = variableRow(variable, inspection)
+        children.push(row)
+        row.onclick = (e) => {
+          if (e.target instanceof HTMLElement && e.target.closest('[data-is-color]')) {
+            channelHost?.upsertVariables({ [variable]: randomHexColor() })
+          }
+        }
+      }
+      ui.variables.replaceChildren(...children)
     }
   })
   ui.iframe.src = withParentOrigin(origin + '/frame.html').toString()

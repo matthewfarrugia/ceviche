@@ -1,9 +1,11 @@
 import {
   MSG_SET_INSPECTOR,
   MSG_SET_VARIABLES,
+  MSG_UPSERT_VARIABLES,
+  MSG_CLEAR_VARIABLES,
+  MSG_VARIABLES_UPDATED,
   MSG_SELECT_TARGET,
   MSG_FRAME_READY,
-  MSG_VARIABLES_UPDATED,
   type Channel,
   type FrameMessages,
   type HostMessages,
@@ -25,9 +27,21 @@ export function frame(channel: Channel<FrameMessages, HostMessages>, options: Fr
     else options.inspector.end()
   })
   channel.on(MSG_SET_VARIABLES, ({ values }) => {
-    applier.apply(values)
+    applier.apply(values, { replace: true })
     setTimeout(() => {
       channel.post(MSG_VARIABLES_UPDATED, { values })
+    }, 0)
+  })
+  channel.on(MSG_UPSERT_VARIABLES, ({ values }) => {
+    applier.apply(values, { replace: false })
+    setTimeout(() => {
+      channel.post(MSG_VARIABLES_UPDATED, { values })
+    }, 0)
+  })
+  channel.on(MSG_CLEAR_VARIABLES, () => {
+    applier.clear()
+    setTimeout(() => {
+      channel.post(MSG_VARIABLES_UPDATED, { values: {} })
     }, 0)
   })
   channel.on(MSG_SELECT_TARGET, ({ path }) => {
